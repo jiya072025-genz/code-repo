@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>C++ Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0a0a18;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .calc-body {
+      background: #1a1a2e;
+      border-radius: 20px;
+      padding: 28px;
+      width: 300px;
+      border: 1px solid #2d2d50;
+    }
+    .label {
+      font-size: 11px;
+      color: #4b4b7a;
+      margin-bottom: 10px;
+      font-family: 'Space Mono', monospace;
+      letter-spacing: 0.05em;
+    }
+    .calc-screen {
+      background: #0d0d1a;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      border: 1px solid #2d2d50;
+    }
+    .screen-expr {
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      color: #6b6baa;
+      min-height: 18px;
+      text-align: right;
+      word-break: break-all;
+    }
+    .screen-result {
+      font-family: 'Space Mono', monospace;
+      font-size: 32px;
+      color: #e2e2ff;
+      text-align: right;
+      word-break: break-all;
+      margin-top: 6px;
+      transition: color 0.2s;
+    }
+    .btn-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 0;
+      height: 60px;
+      font-size: 17px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.1s, background 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn:active { transform: scale(0.93); }
+    .btn-num  { background: #252540; color: #d0d0ff; }
+    .btn-num:hover  { background: #2d2d50; }
+    .btn-op   { background: #2d1f5e; color: #a78bfa; }
+    .btn-op:hover   { background: #3d2a7a; }
+    .btn-eq   { background: #5c3bce; color: #fff; grid-column: span 2; font-size: 20px; }
+    .btn-eq:hover   { background: #6b46e0; }
+    .btn-clr  { background: #4a1f3d; color: #f472b6; }
+    .btn-clr:hover  { background: #5e2850; }
+    .btn-zero { grid-column: span 2; }
+  </style>
+</head>
+<body>
+  <div>
+    <div class="label">// c++ calculator</div>
+    <div class="calc-body">
+      <div class="calc-screen">
+        <div class="screen-expr" id="expr"></div>
+        <div class="screen-result" id="result">0</div>
+      </div>
+      <div class="btn-grid">
+        <button class="btn btn-clr" onclick="clearAll()">AC</button>
+        <button class="btn btn-clr" onclick="backspace()">&#9003;</button>
+        <button class="btn btn-op"  onclick="append('%')">%</button>
+        <button class="btn btn-op"  onclick="append('/')">&#247;</button>
+        <button class="btn btn-num" onclick="append('7')">7</button>
+        <button class="btn btn-num" onclick="append('8')">8</button>
+        <button class="btn btn-num" onclick="append('9')">9</button>
+        <button class="btn btn-op"  onclick="append('*')">&#215;</button>
+        <button class="btn btn-num" onclick="append('4')">4</button>
+        <button class="btn btn-num" onclick="append('5')">5</button>
+        <button class="btn btn-num" onclick="append('6')">6</button>
+        <button class="btn btn-op"  onclick="append('-')">&#8722;</button>
+        <button class="btn btn-num" onclick="append('1')">1</button>
+        <button class="btn btn-num" onclick="append('2')">2</button>
+        <button class="btn btn-num" onclick="append('3')">3</button>
+        <button class="btn btn-op"  onclick="append('+')">+</button>
+        <button class="btn btn-num btn-zero" onclick="append('0')">0</button>
+        <button class="btn btn-num" onclick="append('.')">.</button>
+        <button class="btn btn-eq"  onclick="calculate()">=</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let expr = '';
+
+    function updateDisplay() {
+      document.getElementById('expr').textContent =
+        expr.replace(/\*/g, '×').replace(/\//g, '÷');
+    }
+
+    function append(ch) {
+      const ops = ['+', '-', '*', '/', '%'];
+      if (ops.includes(ch) && ops.includes(expr.slice(-1))) {
+        expr = expr.slice(0, -1);
+      }
+      if (ch === '.' && /\d*\.\d*$/.test(expr.split(/[+\-*/%]/).pop())) return;
+      expr += ch;
+      updateDisplay();
+      document.getElementById('result').style.color = '#6b6baa';
+    }
+
+    function clearAll() {
+      expr = '';
+      document.getElementById('result').textContent = '0';
+      document.getElementById('result').style.color = '#e2e2ff';
+      document.getElementById('expr').textContent = '';
+    }
+
+    function backspace() {
+      expr = expr.slice(0, -1);
+      updateDisplay();
+    }
+
+    function calculate() {
+      if (!expr) return;
+      const m = expr.match(/^(-?\d+\.?\d*)([\+\-\*\/%])(-?\d+\.?\d*)$/);
+      if (!m) {
+        try {
+          const r = Function('"use strict"; return (' + expr + ')')();
+          document.getElementById('expr').textContent =
+            expr.replace(/\*/g,'×').replace(/\//g,'÷') + ' =';
+          document.getElementById('result').textContent =
+            parseFloat(r.toFixed(10)).toString();
+          document.getElementById('result').style.color = '#34d399';
+          expr = r.toString();
+        } catch(e) {
+          document.getElementById('result').textContent = 'Error';
+          document.getElementById('result').style.color = '#f472b6';
+        }
+        return;
+      }
+
+      const a = parseFloat(m[1]), op = m[2], b = parseFloat(m[3]);
+      let result;
+
+      if ((op === '/' || op === '%') && b === 0) {
+        document.getElementById('result').textContent = 'Div/0!';
+        document.getElementById('result').style.color = '#f472b6';
+        expr = '';
+        return;
+      }
+
+      if      (op === '+') result = a + b;
+      else if (op === '-') result = a - b;
+      else if (op === '*') result = a * b;
+      else if (op === '/') result = a / b;
+      else                 result = Math.trunc(a) % Math.trunc(b);
+
+      const display = parseFloat(result.toFixed(10)).toString();
+      document.getElementById('expr').textContent =
+        expr.replace(/\*/g,'×').replace(/\//g,'÷') + ' =';
+      document.getElementById('result').textContent = display;
+      document.getElementById('result').style.color = '#34d399';
+      expr = display;
+    }
+
+    document.addEventListener('keydown', e => {
+      if ('0123456789'.includes(e.key))            append(e.key);
+      else if (['+','-','*','/','%'].includes(e.key)) append(e.key);
+      else if (e.key === '.')                       append('.');
+      else if (e.key === 'Enter' || e.key === '=') calculate();
+      else if (e.key === 'Backspace')               backspace();
+      else if (e.key === 'Escape')                  clearAll();
+    });
+  </script>
+</body>
+</html>
